@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Django
+staticfiles/
+media/
+*.sqlite3
+
+# Secrets and local settings - never commit
+.env
+*.env
+!.env.example
+
+# Database dumps
+*.sql.gz
+*.dump
+backups/
+
+# Editors and OS
+.vscode/
+.idea
+Thumbs.db
+desktop.ini
