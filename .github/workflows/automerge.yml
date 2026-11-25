@@ -1,0 +1,75 @@
+name: Auto-merge
+
+# Squash-merges a pull request into main as soon as CI is green.
+# Skipped (left for a human) when the PR:
+#   - is a draft
+#   - has the label "hold"
+#   - touches models.py or a migration (Dan reviews those)
+
+on:
+  workflow_run:
+    workflows: ["Checks"]
+    types: [completed]
+  pull_request:
+    types: [opened, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: automerge-${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Merge if green
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+
+          if [ "$BRANCH" = "main" ]; then
+            echo "Push to main, nothing to merge."; exit 0
+          fi
+
+          PR=$(gh pr list --repo "$REPO" --head "$BRANCH" --base main --state open \
+                 --json number --jq '.[0].number // empty')
+          if [ -z "$PR" ]; then
+            echo "No open PR for $BRANCH yet."; exit 0
+          fi
+
+          INFO=$(gh pr view "$PR" --repo "$REPO" --json isDraft,labels,headRefOid)
+          if [ "$(echo "$INFO" | jq -r .isDraft)" = "true" ]; then
+            echo "PR #$PR is a draft, skipping."; exit 0
+          fi
+          if echo "$INFO" | jq -e '.labels[] | select(.name == "hold")' > /dev/null; then
+            echo "PR #$PR has the hold label, skipping."; exit 0
+          fi
+
+          SHA=$(echo "$INFO" | jq -r .headRefOid)
+          CI=$(gh run list --repo "$REPO" --workflow ci.yml --commit "$SHA" --limit 1 \
+                 --json status,conclusion --jq '.[0] | "\(.status)/\(.conclusion)"')
+          if [ "$CI" != "completed/success" ]; then
+            echo "CI for $SHA is '$CI', not green yet. Will try again when CI finishes."; exit 0
+          fi
+
+          if gh pr diff "$PR" --repo "$REPO" --name-only | grep -Eq '(^|/)models\.py$|/migrations/'; then
+            echo "PR #$PR touches models or migrations, leaving it for Dan."
+            if ! gh pr view "$PR" --repo "$REPO" --json comments --jq '.comments[].body' | grep -q 'needs Dan'; then
+              gh pr comment "$PR" --repo "$REPO" \
+                --body "Auto-merge skipped: this PR changes models or migrations, so it needs Dan's review first."
+            fi
+            exit 0
+          fi
+
+          gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
+          echo "Merged PR #$PR."
