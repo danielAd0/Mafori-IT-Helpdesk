@@ -1,0 +1,11 @@
+{% comment %}
+  Django's messages framework ("Ticket MAF-000042 logged", etc.).
+  role="status" makes screen readers announce them without moving focus.
+{% endcomment %}
+{% if messages %}
+<ul class="messages" role="status">
+  {% for message in messages %}
+    <li class="alert alert--{{ message.level_tag|default:'info' }}">{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %}

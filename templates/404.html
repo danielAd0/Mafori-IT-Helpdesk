@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% comment %}
+  Shown for missing tickets AND for tickets the user isn't allowed to see,
+  so the wording must not hint that a ticket exists. Only used when DEBUG = False.
+{% endcomment %}
+{% block title %}Page not found{% endblock %}
+{% block content %}
+  <h1>Page not found</h1>
+  <p>We couldn't find that page or ticket.</p>
+  <p><a class="btn btn--secondary" href="/">Back to the helpdesk</a></p>
+{% endblock %}
