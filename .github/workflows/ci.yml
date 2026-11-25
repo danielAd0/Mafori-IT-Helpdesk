@@ -1,0 +1,59 @@
+# Runs automatically on every push and pull request (owner: Dan).
+# Shows a green tick or red cross on the commit and the pull request.
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    # A throwaway PostgreSQL 16, same as everyone's laptop
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: helpdesk_app
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: mafori_helpdesk
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Test-only values, not real secrets
+    env:
+      DJANGO_SECRET_KEY: ci-only-not-a-real-secret-key-0123456789abcdefghijklmnop
+      DJANGO_DEBUG: "True"
+      DB_NAME: mafori_helpdesk
+      DB_USER: helpdesk_app
+      DB_PASSWORD: ci-only-password
+      DB_HOST: localhost
+      DB_PORT: "5432"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Code style (ruff)
+        run: |
+          ruff format --check .
+          ruff check .
+
+      - name: Models and migrations match
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Tests
+        run: python manage.py test

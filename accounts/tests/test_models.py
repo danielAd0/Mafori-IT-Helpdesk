@@ -72,3 +72,11 @@ class UserModelTests(TestCase):
         user = User.objects.create_user("e@maforigroup.co.za", "x")
         self.assertEqual(user.failed_logins, 0)
         self.assertFalse(user.must_change_password)
+
+    def test_admin_role_controls_superuser(self):
+        user = User.objects.create_user("d@maforigroup.co.za", "x", role=User.Role.ADMIN)
+        self.assertTrue(user.is_superuser)
+        user.role = User.Role.EMPLOYEE
+        user.save()
+        self.assertFalse(user.is_superuser)
+        self.assertFalse(user.is_staff)
