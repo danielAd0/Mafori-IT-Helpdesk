@@ -73,6 +73,10 @@ class User(AbstractUser):
     must_change_password = models.BooleanField(
         default=False, help_text="If set, the user must choose a new password before using the app."
     )
+    failed_logins = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Wrong passwords in a row. The login view locks the account at 5; set to 0 to unlock.",
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]

@@ -67,3 +67,8 @@ class UserModelTests(TestCase):
 
         with self.assertRaises(ProtectedError):
             finance.delete()
+
+    def test_failed_logins_starts_at_zero(self):
+        user = User.objects.create_user("e@maforigroup.co.za", "x")
+        self.assertEqual(user.failed_logins, 0)
+        self.assertFalse(user.must_change_password)

@@ -29,7 +29,16 @@ class UserAdmin(BaseUserAdmin):
     form = UserEditForm
     add_form = UserCreateForm
 
-    list_display = ("email", "first_name", "last_name", "role", "department", "is_active", "last_login")
+    list_display = (
+        "email",
+        "first_name",
+        "last_name",
+        "role",
+        "department",
+        "is_active",
+        "failed_logins",
+        "last_login",
+    )
     list_filter = ("role", "is_active", "department")
     search_fields = ("email", "first_name", "last_name")
     ordering = ("first_name", "last_name")
@@ -37,7 +46,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Person", {"fields": ("first_name", "last_name", "department", "phone_ext")}),
-        ("Access", {"fields": ("role", "is_active", "must_change_password")}),
+        ("Access", {"fields": ("role", "is_active", "must_change_password", "failed_logins")}),
         ("Dates", {"fields": ("last_login", "date_joined")}),
     )
     add_fieldsets = (
@@ -59,6 +68,12 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
     readonly_fields = ("last_login", "date_joined")
+    actions = ["unlock_accounts"]
+
+    @admin.action(description="Unlock selected accounts (reset failed logins to 0)")
+    def unlock_accounts(self, request, queryset):
+        count = queryset.update(failed_logins=0)
+        self.message_user(request, f"Unlocked {count} account(s).")
 
     def save_model(self, request, obj, form, change):
         if not change:
