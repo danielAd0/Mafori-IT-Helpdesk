@@ -1,0 +1,15 @@
+[
+  {"model": "accounts.department", "pk": 1, "fields": {"name": "IT"}},
+  {"model": "accounts.department", "pk": 2, "fields": {"name": "Finance"}},
+  {"model": "accounts.department", "pk": 3, "fields": {"name": "Human Resources"}},
+  {"model": "accounts.department", "pk": 4, "fields": {"name": "Operations"}},
+  {"model": "accounts.department", "pk": 5, "fields": {"name": "Sales"}},
+  {"model": "accounts.department", "pk": 6, "fields": {"name": "Management"}},
+  {"model": "tickets.category", "pk": 1, "fields": {"name": "Hardware", "description": "Laptops, desktops, monitors, peripherals", "is_active": true}},
+  {"model": "tickets.category", "pk": 2, "fields": {"name": "Software", "description": "Installing, licensing or fixing applications", "is_active": true}},
+  {"model": "tickets.category", "pk": 3, "fields": {"name": "Network", "description": "Internet, Wi-Fi, VPN, network drives", "is_active": true}},
+  {"model": "tickets.category", "pk": 4, "fields": {"name": "Email", "description": "Outlook, mailbox, distribution lists", "is_active": true}},
+  {"model": "tickets.category", "pk": 5, "fields": {"name": "Printing", "description": "Printers, scanners, toner", "is_active": true}},
+  {"model": "tickets.category", "pk": 6, "fields": {"name": "Account & Access", "description": "Password resets, new accounts, permissions", "is_active": true}},
+  {"model": "tickets.category", "pk": 7, "fields": {"name": "Other", "description": "Anything that does not fit above", "is_active": true}}
+]
