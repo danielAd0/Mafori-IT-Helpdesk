@@ -1,0 +1,37 @@
+{% load static %}<!doctype html>
+<html lang="en-ZA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}IT Helpdesk{% endblock %} · Mafori Group</title>
+  <link rel="stylesheet" href="{% static 'css/mafori.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="/">
+        {# Swap in the real logo file once Mafori supplies it #}
+        {# <img src="{% static 'img/mafori-logo.svg' %}" alt=""> #}
+        <span>Mafori IT Helpdesk</span>
+      </a>
+      {% if user.is_authenticated %}
+        {% include "partials/_nav.html" %}
+      {% endif %}
+    </div>
+  </header>
+
+  <main id="main" class="site-main" tabindex="-1">
+    {% include "partials/_messages.html" %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      Mafori Group · IT Helpdesk
+    </div>
+  </footer>
+</body>
+</html>
