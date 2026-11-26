@@ -1,0 +1,29 @@
+{% comment %}
+  Progress tracker for one ticket: Logged > Assigned > Being worked on > Resolved > Closed.
+  "On hold" sits on the third step. Text says where the ticket is; colour only supports it.
+  Usage: {% include "tickets/partials/_status_steps.html" with status=ticket.status %}
+{% endcomment %}
+{% with s=status %}
+<ol class="steps" aria-label="Ticket progress">
+  <li class="steps__item {% if s == 'OPEN' %}steps__item--current{% else %}steps__item--done{% endif %}"{% if s == 'OPEN' %} aria-current="step"{% endif %}>
+    <span class="steps__dot" aria-hidden="true"></span>
+    <span class="steps__label">Logged</span>
+  </li>
+  <li class="steps__item {% if s == 'ASSIGNED' %}steps__item--current{% elif s == 'OPEN' %}steps__item--todo{% else %}steps__item--done{% endif %}"{% if s == 'ASSIGNED' %} aria-current="step"{% endif %}>
+    <span class="steps__dot" aria-hidden="true"></span>
+    <span class="steps__label">Assigned</span>
+  </li>
+  <li class="steps__item {% if s == 'IN_PROGRESS' or s == 'ON_HOLD' %}steps__item--current{% elif s == 'RESOLVED' or s == 'CLOSED' %}steps__item--done{% else %}steps__item--todo{% endif %}{% if s == 'ON_HOLD' %} steps__item--hold{% endif %}"{% if s == 'IN_PROGRESS' or s == 'ON_HOLD' %} aria-current="step"{% endif %}>
+    <span class="steps__dot" aria-hidden="true"></span>
+    <span class="steps__label">{% if s == 'ON_HOLD' %}On hold{% else %}Being worked on{% endif %}</span>
+  </li>
+  <li class="steps__item {% if s == 'RESOLVED' %}steps__item--current{% elif s == 'CLOSED' %}steps__item--done{% else %}steps__item--todo{% endif %}"{% if s == 'RESOLVED' %} aria-current="step"{% endif %}>
+    <span class="steps__dot" aria-hidden="true"></span>
+    <span class="steps__label">Resolved</span>
+  </li>
+  <li class="steps__item {% if s == 'CLOSED' %}steps__item--current{% else %}steps__item--todo{% endif %}"{% if s == 'CLOSED' %} aria-current="step"{% endif %}>
+    <span class="steps__dot" aria-hidden="true"></span>
+    <span class="steps__label">Closed</span>
+  </li>
+</ol>
+{% endwith %}

@@ -198,4 +198,6 @@ class TicketDetailTests(TicketPageTestCase):
         )
         self.client.force_login(self.alice)
         response = self.client.get(self.detail_url(self.alice_ticket))
-        self.assertContains(response, "ASSIGNED")
+        # The page shows the readable label ("Assigned"), not the stored code ("ASSIGNED")
+        self.assertContains(response, "<strong>Open</strong>")
+        self.assertContains(response, "<strong>Assigned</strong>")

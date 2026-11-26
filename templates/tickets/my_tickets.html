@@ -1,42 +1,54 @@
 {% extends "base.html" %}
+{% comment %}
+  My tickets (owner: Sifiso). View: tickets.views.my_tickets (Jack).
+  Context: tickets = this person's own tickets, newest first (category, requester, agent pre-loaded).
+  On phones each row turns into a card; data-label gives each cell its heading.
+{% endcomment %}
 {% block title %}My tickets{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>My tickets</h1>
+  <div>
+    <h1>My tickets</h1>
+    {% if tickets %}<p class="page-header__sub">{{ tickets|length }} ticket{{ tickets|length|pluralize }} logged by you</p>{% endif %}
+  </div>
   <a class="btn btn--primary" href="{% url 'tickets:ticket_create' %}">Log a ticket</a>
 </div>
 
 {% if tickets %}
 <div class="table-wrap">
-  <table class="table">
+  <table class="table table--stack">
+    <caption class="visually-hidden">Tickets you have logged, newest first</caption>
     <thead>
       <tr>
-        <th>Reference</th>
-        <th>Subject</th>
-        <th>Category</th>
-        <th>Priority</th>
-        <th>Status</th>
-        <th>Logged</th>
+        <th scope="col">Ticket</th>
+        <th scope="col">Subject</th>
+        <th scope="col">Category</th>
+        <th scope="col">Priority</th>
+        <th scope="col">Status</th>
+        <th scope="col">Logged</th>
       </tr>
     </thead>
     <tbody>
       {% for ticket in tickets %}
       <tr>
-        <td><a class="ticket-ref" href="{% url 'tickets:ticket_detail' ticket.pk %}">{{ ticket.reference }}</a></td>
-        <td>{{ ticket.subject }}</td>
-        <td>{{ ticket.category.name }}</td>
-        <td><span class="badge badge--priority-{{ ticket.priority|lower }}">{{ ticket.get_priority_display }}</span></td>
-        <td><span class="badge badge--status-{{ ticket.status|lower }}">{{ ticket.get_status_display }}</span></td>
-        <td>{{ ticket.created_at|date:"j M Y" }}</td>
+        <td data-label="Ticket"><a class="ticket-ref" href="{% url 'tickets:ticket_detail' ticket.pk %}">{{ ticket.reference }}</a></td>
+        <td data-label="Subject" class="table__subject">{{ ticket.subject }}</td>
+        <td data-label="Category">{{ ticket.category.name }}</td>
+        <td data-label="Priority">{% include "partials/_badges.html" with kind="priority" value=ticket.priority label=ticket.get_priority_display %}</td>
+        <td data-label="Status">{% include "partials/_badges.html" with kind="status" value=ticket.status label=ticket.get_status_display %}</td>
+        <td data-label="Logged"><time datetime="{{ ticket.created_at|date:'c' }}">{{ ticket.created_at|date:"j M Y" }}</time></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-<div class="card">
-  <p>You haven't logged any tickets yet.</p>
+<div class="card empty-state">
+  <svg class="empty-state__icon" aria-hidden="true" viewBox="0 0 48 48"><rect x="8" y="6" width="32" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M16 17h16M16 25h16M16 33h9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+  <h2>You haven't logged any tickets yet.</h2>
+  <p class="text-muted">Something not working? Tell IT about it and you can follow its progress here.</p>
+  <a class="btn btn--primary" href="{% url 'tickets:ticket_create' %}">Log your first ticket</a>
 </div>
 {% endif %}
 {% endblock %}
