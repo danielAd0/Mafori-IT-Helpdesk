@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from tickets.models import Category, Ticket, TicketComment, TicketHistory
+from tickets.models import Category, Location, Ticket, TicketComment, TicketHistory
 
 PASSWORD = "Tr1cky-Horse-Battery!"
 
@@ -26,6 +26,7 @@ class TicketPageTestCase(TestCase):
         cls.bob = make_user("bob@maforigroup.co.za")
         cls.agent = make_user("agent@maforigroup.co.za", role="AGENT")
         cls.category = Category.objects.create(name="Laptop")
+        cls.location = Location.objects.create(name="Floor 2")
         cls.retired = Category.objects.create(name="Fax machine", is_active=False)
         cls.alice_ticket = Ticket.objects.create(
             subject="Alice laptop slow",
@@ -89,7 +90,7 @@ class LogTicketTests(TicketPageTestCase):
             "priority": "HIGH",
             "description": "The printer says offline.",
             "asset_tag": "PRN-12",
-            "location": "Floor 2",
+            "location": self.location.pk,
         }
         data.update(extra)
         return data

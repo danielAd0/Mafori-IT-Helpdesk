@@ -8,7 +8,7 @@ the app's own pages, which record every change.
 
 from django.contrib import admin
 
-from .models import Category, Ticket, TicketComment, TicketHistory
+from .models import Category, Location, Ticket, TicketComment, TicketHistory
 
 
 @admin.register(Category)
@@ -19,6 +19,17 @@ class CategoryAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # Old tickets keep their category. Untick "Active" to retire one.
+        return False
+
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ("name", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    search_fields = ("name",)
+
+    def has_delete_permission(self, request, obj=None):
+        # Old tickets keep their location. Untick "Active" to retire one.
         return False
 
 
