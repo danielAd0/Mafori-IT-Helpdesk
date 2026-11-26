@@ -4,7 +4,8 @@
   Each link uses {% url ... as name %}, which leaves the variable empty instead of
   crashing when the URL doesn't exist yet. So a link appears automatically once
   Jack adds that page: no template change needed. URL names to agree with Jack:
-    tickets:dashboard  tickets:my_tickets  tickets:ticket_create  tickets:queue  accounts:logout
+    tickets:dashboard  tickets:my_tickets  tickets:ticket_create  tickets:queue
+  Already live (Jack, Milestone 3): accounts:logout  accounts:change_password
 
   Hiding a link is NOT the protection: Jack's views check the role on every request.
   user.is_it_staff (Dan's model) is True for active AGENT and ADMIN users.
@@ -14,6 +15,7 @@
 {% url 'tickets:ticket_create' as ticket_create_url %}
 {% url 'tickets:queue' as queue_url %}
 {% url 'accounts:logout' as logout_url %}
+{% url 'accounts:change_password' as change_password_url %}
 {% with current=request.resolver_match.url_name %}
 <nav class="main-nav" aria-label="Main">
   <ul>
@@ -28,6 +30,7 @@
 
 <div class="user-menu">
   <span>{{ user.first_name|default:user.email }} <span class="user-menu__role">{{ user.get_role_display }}</span></span>
+  {% if change_password_url %}<a class="user-menu__link" href="{{ change_password_url }}">Change password</a>{% endif %}
   {% if logout_url %}
     {# Log out is a POST button, never a link (security requirement) #}
     <form method="post" action="{{ logout_url }}">
