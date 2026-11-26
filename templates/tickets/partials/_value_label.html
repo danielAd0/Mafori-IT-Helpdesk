@@ -1,0 +1,6 @@
+{% comment %}
+  Turns a stored code into words people understand, e.g. IN_PROGRESS -> "In progress".
+  Ticket history stores raw codes (Dan's model), so the history list uses this.
+  Usage: {% include "tickets/partials/_value_label.html" with value=change.new_value %}
+  Anything that isn't a status or priority code (an email, a category name) is shown as it is.
+{% endcomment %}{% if value == "OPEN" %}Open{% elif value == "ASSIGNED" %}Assigned{% elif value == "IN_PROGRESS" %}In progress{% elif value == "ON_HOLD" %}On hold{% elif value == "RESOLVED" %}Resolved{% elif value == "CLOSED" %}Closed{% elif value == "LOW" %}Low{% elif value == "MEDIUM" %}Medium{% elif value == "HIGH" %}High{% elif value == "CRITICAL" %}Critical{% elif value %}{{ value }}{% else %}nobody{% endif %}
