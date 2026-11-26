@@ -26,8 +26,8 @@ class TicketPageTestCase(TestCase):
         cls.bob = make_user("bob@maforigroup.co.za")
         cls.agent = make_user("agent@maforigroup.co.za", role="AGENT")
         cls.category = Category.objects.create(name="Laptop")
-        cls.location = Location.objects.create(name="Floor 2")
         cls.retired = Category.objects.create(name="Fax machine", is_active=False)
+        cls.location = Location.objects.create(name="Floor 2")
         cls.alice_ticket = Ticket.objects.create(
             subject="Alice laptop slow",
             description="It crawls.",
@@ -139,6 +139,22 @@ class LogTicketTests(TicketPageTestCase):
         response = self.client.post(reverse("tickets:ticket_create"), self.data(category=self.retired.pk))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Ticket.objects.count(), before)
+
+    def test_a_retired_location_is_refused(self):
+        retired = Location.objects.create(name="Closed depot", is_active=False)
+        self.client.force_login(self.alice)
+        before = Ticket.objects.count()
+        response = self.client.post(reverse("tickets:ticket_create"), self.data(location=retired.pk))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Ticket.objects.count(), before)
+
+    def test_the_location_dropdown_lists_only_active_locations(self):
+        retired = Location.objects.create(name="Closed depot", is_active=False)
+        self.client.force_login(self.alice)
+        response = self.client.get(reverse("tickets:ticket_create"))
+        choices = response.context["form"].fields["location"].queryset
+        self.assertIn(self.location, choices)
+        self.assertNotIn(retired, choices)
 
 
 class TicketDetailTests(TicketPageTestCase):

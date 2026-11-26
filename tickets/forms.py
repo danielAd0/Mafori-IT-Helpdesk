@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Category, Ticket
+from .models import Category, Location, Ticket
 
 
 class TicketForm(forms.ModelForm):
@@ -13,6 +13,8 @@ class TicketForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Retired categories can't be chosen for new tickets
+        # Retired categories and locations can't be chosen for new tickets
         self.fields["category"].queryset = Category.objects.filter(is_active=True)
         self.fields["category"].empty_label = "Choose a category"
+        self.fields["location"].queryset = Location.objects.filter(is_active=True)
+        self.fields["location"].empty_label = "Choose a location"
