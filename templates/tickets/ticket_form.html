@@ -1,32 +1,67 @@
 {% extends "base.html" %}
+{% comment %}
+  Log a ticket (owner: Sifiso). View: tickets.views.ticket_create (Jack).
+  Context: form = tickets.forms.TicketForm
+    subject, category (active categories only), priority, description, asset_tag, location
+  Requester and status are set by Jack's view, so they never appear here.
+  Help text gets id "<field id>_helptext": Django adds aria-describedby pointing at it.
+{% endcomment %}
 {% block title %}Log a ticket{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>Log a ticket</h1>
+  <div>
+    <h1>Log a ticket</h1>
+    <p class="page-header__sub">Tell IT what's wrong. The more detail you give, the faster it gets fixed.</p>
+  </div>
 </div>
 
-<form method="post" class="card form" novalidate>
-  {% csrf_token %}
+<div class="split">
+  <form method="post" class="card form split__main" novalidate>
+    {% csrf_token %}
 
-  {% for message in form.non_field_errors %}
-    <p class="alert alert--error" role="alert">{{ message }}</p>
-  {% endfor %}
+    {% if form.errors %}
+      <div class="alert alert--error" role="alert">
+        Please fix the {{ form.errors|length }} highlighted field{{ form.errors|length|pluralize }} below.
+        {% for message in form.non_field_errors %}<br>{{ message }}{% endfor %}
+      </div>
+    {% endif %}
 
-  {% for field in form %}
-    <div class="field{% if field.errors %} field--invalid{% endif %}">
-      {{ field.label_tag }}
-      {{ field }}
-      {% if field.help_text %}<div class="field__help">{{ field.help_text }}</div>{% endif %}
-      {% for message in field.errors %}
-        <p class="field__error">{{ message }}</p>
-      {% endfor %}
+    {% for field in form %}
+      <div class="field{% if field.errors %} field--invalid{% endif %}">
+        <label for="{{ field.id_for_label }}">
+          {{ field.label }}{% if not field.field.required %} <span class="field__optional">(optional)</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}<span class="field__help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</span>{% endif %}
+        {% for message in field.errors %}<span class="field__error">{{ message }}</span>{% endfor %}
+      </div>
+    {% endfor %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">Log ticket</button>
+      <a class="btn btn--secondary" href="{% url 'tickets:my_tickets' %}">Cancel</a>
     </div>
-  {% endfor %}
+  </form>
 
-  <div class="form-actions">
-    <button type="submit" class="btn btn--primary">Log ticket</button>
-    <a class="btn btn--secondary" href="{% url 'tickets:my_tickets' %}">Cancel</a>
-  </div>
-</form>
+  <aside class="split__side" aria-labelledby="priority-guide">
+    <div class="card card--quiet">
+      <h2 id="priority-guide">Choosing a priority</h2>
+      <dl class="guide">
+        <div><dt>{% include "partials/_badges.html" with kind="priority" value="CRITICAL" label="Critical" %}</dt><dd>Nobody can work, or a key system is down for many people.</dd></div>
+        <div><dt>{% include "partials/_badges.html" with kind="priority" value="HIGH" label="High" %}</dt><dd>You can't do your job and there's no workaround.</dd></div>
+        <div><dt>{% include "partials/_badges.html" with kind="priority" value="MEDIUM" label="Medium" %}</dt><dd>It slows you down, but you can keep working.</dd></div>
+        <div><dt>{% include "partials/_badges.html" with kind="priority" value="LOW" label="Low" %}</dt><dd>A minor annoyance or a request that can wait.</dd></div>
+      </dl>
+    </div>
+    <div class="card card--quiet">
+      <h2>What happens next</h2>
+      <ol class="next-steps">
+        <li>Your ticket gets a number like MAF-000123.</li>
+        <li>IT picks it up and assigns someone to it.</li>
+        <li>Follow updates and replies under <a href="{% url 'tickets:my_tickets' %}">My tickets</a>.</li>
+      </ol>
+    </div>
+  </aside>
+</div>
 {% endblock %}

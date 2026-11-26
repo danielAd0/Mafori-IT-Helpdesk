@@ -1,80 +1,112 @@
 {% extends "base.html" %}
+{% load ticket_pages %}
+{% comment %}
+  One ticket (owner: Sifiso). View: tickets.views.ticket_detail (Jack).
+  Context: ticket (category, requester, agent pre-loaded)
+           comments = only the comments this person may see (employees never get internal notes)
+           history  = TicketHistory rows; values are stored codes, shown via |history_label
+  Everything people typed goes through auto-escaping; never mark it safe.
+{% endcomment %}
 {% block title %}{{ ticket.reference }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1><span class="ticket-ref">{{ ticket.reference }}</span> {{ ticket.subject }}</h1>
-  <a class="btn btn--secondary" href="{% url 'tickets:my_tickets' %}">Back to my tickets</a>
-</div>
+<p class="back-link"><a href="{% url 'tickets:my_tickets' %}">&larr; Back to my tickets</a></p>
 
-<div class="card">
-  <p>
-    <span class="badge badge--status-{{ ticket.status|lower }}">{{ ticket.get_status_display }}</span>
-    <span class="badge badge--priority-{{ ticket.priority|lower }}">{{ ticket.get_priority_display }}</span>
+<div class="ticket-head">
+  <p class="ticket-head__ref"><span class="ticket-ref">{{ ticket.reference }}</span></p>
+  <h1 class="ticket-head__title">{{ ticket.subject }}</h1>
+  <p class="ticket-head__badges">
+    {% include "partials/_badges.html" with kind="status" value=ticket.status label=ticket.get_status_display %}
+    {% include "partials/_badges.html" with kind="priority" value=ticket.priority label=ticket.get_priority_display %}
   </p>
-  <dl>
-    <dt>Category</dt>
-    <dd>{{ ticket.category.name }}</dd>
-    <dt>Logged by</dt>
-    <dd>{{ ticket.requester.first_name }} {{ ticket.requester.last_name }}</dd>
-    <dt>Assigned to</dt>
-    <dd>{% if ticket.assigned_to %}{{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}{% else %}Not assigned yet{% endif %}</dd>
-    <dt>Logged on</dt>
-    <dd>{{ ticket.created_at|date:"j M Y H:i" }}</dd>
-    {% if ticket.asset_tag %}<dt>Asset tag</dt><dd>{{ ticket.asset_tag }}</dd>{% endif %}
-    {% if ticket.location %}<dt>Location</dt><dd>{{ ticket.location }}</dd>{% endif %}
-  </dl>
-
-  <h2>Description</h2>
-  {{ ticket.description|linebreaks }}
-
-  {% if ticket.resolution_note %}
-    <h2>Resolution</h2>
-    {{ ticket.resolution_note|linebreaks }}
-  {% endif %}
 </div>
 
-<h2>Comments</h2>
-{% for comment in comments %}
-  <div class="comment{% if comment.is_internal %} comment--internal{% endif %}">
-    <p class="comment__meta">
-      {{ comment.author.first_name }} {{ comment.author.last_name }}
-      · {{ comment.created_at|date:"j M Y H:i" }}
-      {% if comment.is_internal %}· Internal note (IT only){% endif %}
-    </p>
-    {{ comment.body|linebreaks }}
-  </div>
-{% empty %}
-  <p class="text-muted">No comments yet.</p>
-{% endfor %}
+<div class="card ticket-progress">
+  <h2 class="visually-hidden">Progress</h2>
+  {% ticket_steps ticket as steps %}
+  <ol class="steps">
+    {% for step in steps %}
+      <li class="steps__item{% if step.state %} steps__item--{{ step.state }}{% endif %}{% if step.hold %} steps__item--hold{% endif %}"{% if step.state == "current" %} aria-current="step"{% endif %}>
+        <span class="steps__dot" aria-hidden="true"></span>
+        {{ step.label }}{% if step.hold %} (on hold){% endif %}
+        {% if step.state == "done" %}<span class="visually-hidden">(done)</span>{% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</div>
 
-<h2>History</h2>
-{% if history %}
-<div class="table-wrap">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>When</th>
-        <th>Changed by</th>
-        <th>What</th>
-        <th>From</th>
-        <th>To</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for change in history %}
-      <tr>
-        <td>{{ change.changed_at|date:"j M Y H:i" }}</td>
-        <td>{{ change.changed_by.first_name }} {{ change.changed_by.last_name }}</td>
-        <td>{{ change.get_field_display }}</td>
-        <td>{{ change.old_value|default:"-" }}</td>
-        <td>{{ change.new_value|default:"-" }}</td>
-      </tr>
+<div class="split">
+  <div class="split__main">
+    {% if ticket.resolution_note %}
+      <section class="card card--resolved" aria-labelledby="resolution-heading">
+        <h2 id="resolution-heading">How IT resolved it</h2>
+        <div class="prose">{{ ticket.resolution_note|linebreaks }}</div>
+      </section>
+    {% endif %}
+
+    <section class="card" aria-labelledby="description-heading">
+      <h2 id="description-heading">Description</h2>
+      <div class="prose">{{ ticket.description|linebreaks }}</div>
+    </section>
+
+    <section class="section" aria-labelledby="comments-heading">
+      <h2 id="comments-heading">Comments{% if comments %} <span class="count">{{ comments|length }}</span>{% endif %}</h2>
+      {% for comment in comments %}
+        <article class="comment{% if comment.is_internal %} comment--internal{% endif %}">
+          <p class="comment__meta">
+            {{ comment.author.first_name }} {{ comment.author.last_name }}
+            · <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j M Y H:i" }}</time>
+            {% if comment.is_internal %}<span class="comment__tag">Internal note: IT only</span>{% endif %}
+          </p>
+          <div class="prose">{{ comment.body|linebreaks }}</div>
+        </article>
+      {% empty %}
+        <p class="text-muted">No comments yet.</p>
       {% endfor %}
-    </tbody>
-  </table>
+    </section>
+
+    <section class="section" aria-labelledby="history-heading">
+      <h2 id="history-heading">History</h2>
+      {% if history %}
+        <ol class="history">
+          {% for change in history %}
+            <li class="history__item">
+              <span class="history__what">
+                {% if change.field == "ASSIGNED_TO" %}
+                  {% if not change.new_value %}Unassigned from {{ change.old_value }}
+                  {% elif change.old_value %}Reassigned from {{ change.old_value }} to {{ change.new_value }}
+                  {% else %}Assigned to {{ change.new_value }}{% endif %}
+                {% else %}
+                  {{ change.get_field_display }} changed
+                  {% if change.old_value %}from <strong>{{ change.old_value|history_label:change.field }}</strong>{% endif %}
+                  to <strong>{{ change.new_value|history_label:change.field|default:"nothing" }}</strong>
+                {% endif %}
+              </span>
+              <span class="history__meta">
+                {{ change.changed_by.first_name }} {{ change.changed_by.last_name }}
+                · <time datetime="{{ change.changed_at|date:'c' }}">{{ change.changed_at|date:"j M Y H:i" }}</time>
+              </span>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="text-muted">Nothing has changed yet.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="split__side" aria-labelledby="details-heading">
+    <div class="card card--quiet">
+      <h2 id="details-heading">Details</h2>
+      <dl class="details">
+        <div><dt>Category</dt><dd>{{ ticket.category.name }}</dd></div>
+        <div><dt>Logged by</dt><dd>{{ ticket.requester.first_name }} {{ ticket.requester.last_name }}</dd></div>
+        <div><dt>Assigned to</dt><dd>{% if ticket.assigned_to %}{{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}{% else %}Not assigned yet{% endif %}</dd></div>
+        <div><dt>Logged on</dt><dd><time datetime="{{ ticket.created_at|date:'c' }}">{{ ticket.created_at|date:"j M Y H:i" }}</time></dd></div>
+        {% if ticket.asset_tag %}<div><dt>Asset tag</dt><dd>{{ ticket.asset_tag }}</dd></div>{% endif %}
+        {% if ticket.location %}<div><dt>Location</dt><dd>{{ ticket.location }}</dd></div>{% endif %}
+      </dl>
+    </div>
+  </aside>
 </div>
-{% else %}
-  <p class="text-muted">Nothing has changed yet.</p>
-{% endif %}
 {% endblock %}
