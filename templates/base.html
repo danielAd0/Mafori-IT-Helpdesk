@@ -4,18 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}IT Helpdesk{% endblock %} · Mafori Group</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
   <link rel="stylesheet" href="{% static 'css/mafori.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body{% block body_class %}{% endblock %}>
+  {% block body %}
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <header class="site-header">
     <div class="site-header__inner">
       <a class="brand" href="/">
-        {# Swap in the real logo file once Mafori supplies it #}
-        {# <img src="{% static 'img/mafori-logo.svg' %}" alt=""> #}
-        <span>Mafori IT Helpdesk</span>
+        <img src="{% static 'img/mafori-logo.png' %}" alt="Mafori" width="44" height="36">
+        <span>IT Helpdesk</span>
       </a>
       {% if user.is_authenticated %}
         {% include "partials/_nav.html" %}
@@ -33,5 +35,7 @@
       Mafori Group · IT Helpdesk
     </div>
   </footer>
+  {% endblock body %}
+  {% block scripts %}{% endblock %}
 </body>
 </html>
