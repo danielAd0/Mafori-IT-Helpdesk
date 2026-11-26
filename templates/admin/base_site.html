@@ -1,22 +1,51 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
 {% comment %}
-  Mafori colours on Django's admin panel (owner: Sifiso).
-  Extends Django's own admin/base_site.html and only swaps the colour variables,
-  so admin upgrades keep working. Keep these in step with the tokens in static/css/mafori.css.
+  Mafori orange and charcoal on Django's admin panel (owner: Sifiso).
+  Extends Django's own admin/base_site.html and only swaps colour variables,
+  so admin upgrades keep working. Keep in step with the tokens in static/css/mafori.css.
+  White text never sits on bright orange (too faint); dark orange #a84a00 is used instead.
 {% endcomment %}
+{% block extrahead %}{{ block.super }}
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
+{% endblock %}
 {% block extrastyle %}{{ block.super }}
 <style>
   :root,
   html[data-theme="light"],
   html[data-theme="dark"] {
-    --primary: #0b4f6c;
-    --secondary: #083a50;
-    --accent: #f2a541;
+    --secondary: #2d2d2d;            /* top bar */
+    --header-bg: #2d2d2d;
+    --primary: #444444;              /* section headers, breadcrumbs, buttons */
+    --breadcrumbs-bg: #444444;
+    --accent: #ff7a00;               /* "Mafori IT Helpdesk admin" title */
     --header-color: #ffffff;
     --header-link-color: #ffffff;
+    --header-branding-color: #ff7a00;
+    --button-bg: #444444;
+    --button-hover-bg: #2d2d2d;
+    --default-button-bg: #a84a00;    /* Save */
+    --default-button-hover-bg: #7d3700;
+  }
+  :root,
+  html[data-theme="light"] {
+    --link-fg: #a84a00;
+    --link-hover-color: #7d3700;
+    --link-selected-fg: #7d3700;
+    --selected-row: #fff4ea;
+  }
+  html[data-theme="dark"] {
+    --link-fg: #ff9a3c;
+    --link-hover-color: #ffb066;
+    --link-selected-fg: #ffb066;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --primary: #0b4f6c; --secondary: #083a50; --accent: #f2a541; }
+    html:not([data-theme="light"]) {
+      --link-fg: #ff9a3c;
+      --link-hover-color: #ffb066;
+      --link-selected-fg: #ffb066;
+      --selected-row: #3d3328;
+    }
   }
 </style>
 {% endblock %}
