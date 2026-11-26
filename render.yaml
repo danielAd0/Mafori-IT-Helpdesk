@@ -1,0 +1,38 @@
+# Render Blueprint for the STAGING copy (owner: Dan). Real staff data never goes here.
+# Render reads this file when you create a Blueprint from the repo.
+databases:
+  - name: mafori-helpdesk-db
+    plan: free
+    region: frankfurt
+    databaseName: mafori_helpdesk
+    user: helpdesk_app
+
+services:
+  - type: web
+    name: mafori-helpdesk-staging
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    buildCommand: bash build.sh
+    startCommand: python -m gunicorn helpdesk.wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mafori-helpdesk-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: WEB_CONCURRENCY
+        value: 2
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+      - key: DJANGO_SUPERUSER_FIRST_NAME
+        value: Staging
+      - key: DJANGO_SUPERUSER_LAST_NAME
+        value: Admin

@@ -7,7 +7,7 @@ their own at first login (must_change_password is switched on automatically).
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm
+from django.contrib.auth.forms import AdminPasswordChangeForm, AdminUserCreationForm, UserChangeForm
 
 from .models import Department, User
 
@@ -24,10 +24,23 @@ class UserEditForm(UserChangeForm):
         fields = "__all__"
 
 
+class PasswordResetByAdminForm(AdminPasswordChangeForm):
+    """An admin setting someone's password: it's temporary, and it unlocks the account."""
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.must_change_password = True
+        user.failed_logins = 0
+        if commit:
+            user.save()
+        return user
+
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     form = UserEditForm
     add_form = UserCreateForm
+    change_password_form = PasswordResetByAdminForm
 
     list_display = (
         "email",

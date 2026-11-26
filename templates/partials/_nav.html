@@ -1,0 +1,38 @@
+{% comment %}
+  Main navigation (owner: Sifiso).
+
+  Each link uses {% url ... as name %}, which leaves the variable empty instead of
+  crashing when the URL doesn't exist yet. So a link appears automatically once
+  Jack adds that page: no template change needed. URL names to agree with Jack:
+    tickets:dashboard  tickets:my_tickets  tickets:ticket_create  tickets:queue  accounts:logout
+
+  Hiding a link is NOT the protection: Jack's views check the role on every request.
+  user.is_it_staff (Dan's model) is True for active AGENT and ADMIN users.
+{% endcomment %}
+{% url 'tickets:dashboard' as dashboard_url %}
+{% url 'tickets:my_tickets' as my_tickets_url %}
+{% url 'tickets:ticket_create' as ticket_create_url %}
+{% url 'tickets:queue' as queue_url %}
+{% url 'accounts:logout' as logout_url %}
+{% with current=request.resolver_match.url_name %}
+<nav class="main-nav" aria-label="Main">
+  <ul>
+    {% if dashboard_url %}<li><a href="{{ dashboard_url }}"{% if current == 'dashboard' %} aria-current="page"{% endif %}>Dashboard</a></li>{% endif %}
+    {% if my_tickets_url %}<li><a href="{{ my_tickets_url }}"{% if current == 'my_tickets' %} aria-current="page"{% endif %}>My tickets</a></li>{% endif %}
+    {% if ticket_create_url %}<li><a href="{{ ticket_create_url }}"{% if current == 'ticket_create' %} aria-current="page"{% endif %}>Log a ticket</a></li>{% endif %}
+    {% if user.is_it_staff and queue_url %}<li><a href="{{ queue_url }}"{% if current == 'queue' %} aria-current="page"{% endif %}>IT queue</a></li>{% endif %}
+    {% if user.role == "ADMIN" %}<li><a href="{% url 'admin:index' %}">Admin</a></li>{% endif %}
+  </ul>
+</nav>
+{% endwith %}
+
+<div class="user-menu">
+  <span>{{ user.first_name|default:user.email }} <span class="user-menu__role">{{ user.get_role_display }}</span></span>
+  {% if logout_url %}
+    {# Log out is a POST button, never a link (security requirement) #}
+    <form method="post" action="{{ logout_url }}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn--ghost">Log out</button>
+    </form>
+  {% endif %}
+</div>

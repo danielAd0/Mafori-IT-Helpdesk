@@ -96,9 +96,12 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         self.email = (self.email or "").strip().lower()
-        # The admin panel is for the ADMIN role only. Keeping is_staff in step
-        # with the role here means nobody can be given admin access by accident
-        self.is_staff = self.role == self.Role.ADMIN
+        # The admin panel is for the ADMIN role only, and an ADMIN can manage
+        # everything in it. Both flags follow the role, so nobody gets (or keeps)
+        # admin access by accident, e.g. after being moved back to EMPLOYEE.
+        is_admin = self.role == self.Role.ADMIN
+        self.is_staff = is_admin
+        self.is_superuser = is_admin
         super().save(*args, **kwargs)
 
     @property

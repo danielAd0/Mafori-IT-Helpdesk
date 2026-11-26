@@ -1,18 +1,25 @@
-$html = @'
-{# TEMPORARY placeholder so the login flow can be tested. Sifiso replaces this with the branded page. #}
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Log in - Mafori IT Helpdesk</title></head>
-<body>
-  <h1>Mafori IT Helpdesk</h1>
-  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
-  <form method="post">
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+  <h1>Log in</h1>
+
+  {% if error %}
+    <p class="alert alert--error" role="alert">{{ error }}</p>
+  {% endif %}
+
+  <form method="post" novalidate>
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next }}">
-    {{ form.as_p }}
-    <button type="submit">Log in</button>
+    {% for field in form %}
+      <div class="field">
+        {{ field.label_tag }}
+        {{ field }}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn--primary">Log in</button>
   </form>
-</body>
-</html>
-'@
-[IO.File]::WriteAllText("C:\helpdesk\templates\accounts\login.html", $html, (New-Object Text.UTF8Encoding $false))
+</section>
+{% endblock %}

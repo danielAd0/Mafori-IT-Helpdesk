@@ -1,0 +1,7 @@
+{% comment %}
+  Status and priority badges. Usage:
+    {% include "partials/_badges.html" with kind="status" value=ticket.status label=ticket.get_status_display %}
+    {% include "partials/_badges.html" with kind="priority" value=ticket.priority label=ticket.get_priority_display %}
+  The label text always carries the meaning; colour only supports it.
+{% endcomment %}
+<span class="badge badge--{{ kind }}-{{ value|lower }}">{{ label }}</span>
