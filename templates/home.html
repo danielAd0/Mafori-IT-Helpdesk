@@ -1,0 +1,17 @@
+$html = @'
+{# TEMPORARY landing page so login can be tested. Replaced by the dashboard in Milestone 6. #}
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Home - Mafori IT Helpdesk</title></head>
+<body>
+  <h1>Mafori IT Helpdesk</h1>
+  <p>Logged in as {{ request.user.get_full_name|default:request.user.email }} ({{ request.user.get_role_display }}).</p>
+  {% if request.user.is_staff %}<p><a href="{% url 'admin:index' %}">Admin panel</a></p>{% endif %}
+  <form method="post" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log out</button>
+  </form>
+</body>
+</html>
+'@
+[IO.File]::WriteAllText("C:\helpdesk\templates\home.html", $html, (New-Object Text.UTF8Encoding $false))
