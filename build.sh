@@ -10,8 +10,9 @@ python manage.py collectstatic --no-input
 # Apply any new database migrations
 python manage.py migrate --no-input
 
-# Departments and categories (safe to repeat: same IDs every time)
-python manage.py loaddata initial_data
+# Departments and categories: only fills a list that's still empty,
+# so edits made in the admin panel survive every deploy
+python manage.py seed_reference_data
 
 # First admin account, from the DJANGO_SUPERUSER_* values set in Render.
 # Only created once; later deploys skip it.

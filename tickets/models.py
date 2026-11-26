@@ -2,7 +2,7 @@
 Tickets and everything attached to them (owner: Dan).
 
 Rules carried over from the design doc:
-  - Users and categories in use can't be deleted (PROTECT); deactivate them instead.
+  - Users, categories and locations in use can't be deleted (PROTECT); deactivate them instead.
   - TicketHistory rows are written once and never edited or deleted.
   - Status, priority and history field values are checked by the database too,
     not just by the forms.
@@ -22,6 +22,23 @@ class Category(models.Model):
     class Meta:
         ordering = ["name"]
         verbose_name_plural = "categories"
+
+    def __str__(self):
+        return self.name
+
+
+class Location(models.Model):
+    """Where the problem is: an office, floor or site. Managed by admins in the admin panel."""
+
+    name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True, help_text="Untick to stop it appearing in the ticket form.")
+    sort_order = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Lower numbers come first in the dropdown. Equal numbers are sorted by name.",
+    )
+
+    class Meta:
+        ordering = ["sort_order", "name"]
 
     def __str__(self):
         return self.name
@@ -60,7 +77,14 @@ class Ticket(models.Model):
         related_name="assigned_tickets",
     )
     asset_tag = models.CharField(max_length=50, blank=True, help_text="Laptop or printer number, if relevant")
-    location = models.CharField(max_length=100, blank=True, help_text="Office or floor")
+    location = models.ForeignKey(
+        Location,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="tickets",
+        help_text="Office or floor",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
