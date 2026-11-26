@@ -71,7 +71,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # Jack: login-required and forced-password-change middleware go here (Milestone 1)
+    # Jack (Milestone 1): everything needs a login, and anyone still on a
+    # temporary password is sent to "change password". These must come after
+    # AuthenticationMiddleware.
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
+    "accounts.middleware.ForcePasswordChangeMiddleware",
+    "accounts.middleware.NoCacheMiddleware",
 ]
 
 ROOT_URLCONF = "helpdesk.urls"
@@ -126,6 +131,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "accounts.User"
 
+# Jack: our own login check with the 5-failed-attempts lockout. It is the ONLY
+# backend on purpose: if Django's ModelBackend were listed too, /admin/login/
+# would have no lockout.
+AUTHENTICATION_BACKENDS = ["accounts.backends.LockoutBackend"]
+
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "home"  # a temporary page until the dashboard exists
+LOGOUT_REDIRECT_URL = "accounts:login"
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {
@@ -135,6 +149,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+# ---------------------------------------------------------------------------
+# Sessions (Jack)
+# ---------------------------------------------------------------------------
+
+# A session ends after 30 minutes without activity.
+SESSION_COOKIE_AGE = 30 * 60
+SESSION_SAVE_EVERY_REQUEST = True  # each request pushes the 30 minutes forward
+SESSION_COOKIE_HTTPONLY = True  # JavaScript can't read the session cookie
+# HTTPS-only cookies are switched on for the live site in the HTTPS block below.
 
 # ---------------------------------------------------------------------------
 # Language and time
