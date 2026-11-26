@@ -19,7 +19,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from accounts.models import Department, User
-from tickets.models import Category, Ticket, TicketComment, TicketHistory
+from tickets.models import Category, Location, Ticket, TicketComment, TicketHistory
 
 DEMO_USERS = [
     ("admin@maforigroup.co.za", "Admin@2026", "System", "Admin", User.Role.ADMIN, "IT"),
@@ -61,6 +61,8 @@ class Command(BaseCommand):
             self.stdout.write("Tickets already exist, so no sample tickets were added.")
         else:
             staff, agent, admin = users[User.Role.EMPLOYEE], users[User.Role.AGENT], users[User.Role.ADMIN]
+            first_floor, _ = Location.objects.get_or_create(name="Head office - 1st floor")
+            second_floor, _ = Location.objects.get_or_create(name="Head office - 2nd floor")
             laptop = Ticket.objects.create(
                 subject="Laptop will not boot",
                 description="Black screen after the Windows logo since this morning.",
@@ -70,14 +72,14 @@ class Command(BaseCommand):
                 requester=staff,
                 assigned_to=agent,
                 asset_tag="MAF-LT-014",
-                location="Finance, 1st floor",
+                location=first_floor,
             )
             Ticket.objects.create(
                 subject="Need Excel licence",
                 description="New starter in Finance needs Microsoft Excel.",
                 category=Category.objects.get(name="Software"),
                 requester=staff,
-                location="Finance, 1st floor",
+                location=first_floor,
             )
             printer = Ticket.objects.create(
                 subject="Printer jamming",
@@ -88,7 +90,7 @@ class Command(BaseCommand):
                 requester=staff,
                 assigned_to=agent,
                 asset_tag="MAF-PR-002",
-                location="2nd floor",
+                location=second_floor,
             )
             TicketComment.objects.create(
                 ticket=laptop, author=agent, body="Collecting the laptop at 11:00 to check the drive."
