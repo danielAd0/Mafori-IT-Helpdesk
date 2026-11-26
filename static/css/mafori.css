@@ -1,21 +1,39 @@
+/* =========================================================================
+   Mafori IT Helpdesk: main stylesheet (owner: Sifiso)
+   Plain CSS, no build step. Served by Django's static files / WhiteNoise.
 
+   1. Tokens  2. Base  3. Layout  4. Navigation  5. Buttons  6. Forms
+   7. Tables  8. Badges  9. Alerts & cards  10. Utilities  11. Sign-in page
+   ========================================================================= */
+
+/* 1. Tokens --------------------------------------------------------------- */
 :root {
-  --brand: #0b4f6c;          /* primary: header, primary buttons */
-  --brand-dark: #083a50;     /* hover / pressed */
-  --brand-tint: #e6f0f4;     /* light backgrounds */
-  --accent: #f2a541;         /* small highlights only, not text on white */
+  /* Mafori brand: orange + charcoal (confirmed by Sifiso, 26 Nov 2026) */
+  --orange: #ff7a00;        /* fills, rings, accents on charcoal. Never text on white (2.6:1) */
+  --orange-hover: #ff9533;
+  --orange-text: #a84a00;   /* orange for text, links and focus on light backgrounds (5.7:1) */
+  --orange-tint: #fff4ea;
+  --charcoal: #2d2d2d;      /* header, sign-in panel */
+  --charcoal-2: #444444;    /* hover on charcoal, inputs on charcoal */
 
-  --text: #1d232a;
-  --text-muted: #56606b;
-  --bg: #f6f7f9;
+  /* Older names, kept so every rule below keeps working */
+  --brand: var(--orange-text);
+  --brand-dark: #7d3700;
+  --brand-tint: var(--orange-tint);
+  --accent: var(--orange);
+
+  --text: #1d1d1d;
+  --text-muted: #5c5c5c;
+  --bg: #f6f6f6;
   --surface: #ffffff;
-  --border: #d5dae0;
-  --focus: #1a73e8;
+  --border: #dcdcdc;
+  --focus: var(--orange-text);
 
+  /* Status colours carry meaning, so they stay distinct from the brand */
   --ok: #1e7b45;    --ok-bg: #e5f4eb;
   --warn: #8a5a00;  --warn-bg: #fdf3dc;
   --danger: #b3261e; --danger-bg: #fbe9e7;
-  --info: #0b4f6c;  --info-bg: #e6f0f4;
+  --info: #1f5f8b;  --info-bg: #e7f0f7;
 
   --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   --radius: 6px;
@@ -54,7 +72,8 @@ a:hover { color: var(--brand-dark); }
 .skip-link:focus { top: var(--space-2); }
 
 /* 3. Layout -------------------------------------------------------------- */
-.site-header { background: var(--brand); color: #fff; }
+.site-header { background: var(--charcoal); color: #fff; }
+.site-header :focus-visible { outline-color: var(--orange); }
 .site-header__inner,
 .site-main,
 .site-footer__inner {
@@ -71,7 +90,7 @@ a:hover { color: var(--brand-dark); }
   color: #fff; text-decoration: none; font-weight: 600; font-size: 1.1rem;
 }
 .brand:hover { color: #fff; }
-.brand img { height: 2rem; width: auto; }
+.brand img { height: 2.25rem; width: auto; }
 .site-main { padding-top: var(--space-5); padding-bottom: var(--space-5); }
 .site-footer { border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.875rem; }
 .site-footer__inner { padding-top: var(--space-3); padding-bottom: var(--space-3); }
@@ -92,11 +111,13 @@ a:hover { color: var(--brand-dark); }
   display: block; padding: var(--space-2) var(--space-3);
   color: #fff; text-decoration: none; border-radius: var(--radius);
 }
-.main-nav a:hover { background: var(--brand-dark); color: #fff; }
-.main-nav a[aria-current="page"] { background: var(--brand-dark); box-shadow: inset 0 -3px 0 var(--accent); }
+.main-nav a:hover { background: var(--charcoal-2); color: #fff; }
+.main-nav a[aria-current="page"] { background: var(--charcoal-2); box-shadow: inset 0 -3px 0 var(--orange); }
 
 .user-menu { display: flex; align-items: center; gap: var(--space-3); font-size: 0.9rem; }
 .user-menu form { margin: 0; }
+.user-menu__link { color: #fff; }
+.user-menu__link:hover { color: var(--orange); }
 .user-menu__role {
   font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
   background: rgba(255, 255, 255, 0.15); padding: 0.1rem 0.45rem; border-radius: 999px;
@@ -109,13 +130,13 @@ a:hover { color: var(--brand-dark); }
   padding: 0.6rem 1rem; border-radius: var(--radius);
   border: 1px solid transparent; cursor: pointer; text-decoration: none;
 }
-.btn--primary { background: var(--brand); color: #fff; }
-.btn--primary:hover { background: var(--brand-dark); color: #fff; }
+.btn--primary { background: var(--orange); color: #1a1a1a; }
+.btn--primary:hover { background: var(--orange-hover); color: #1a1a1a; }
 .btn--secondary { background: var(--surface); color: var(--brand); border-color: var(--brand); }
 .btn--secondary:hover { background: var(--brand-tint); }
 .btn--danger { background: var(--danger); color: #fff; }
 .btn--ghost { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.5); padding: 0.35rem 0.75rem; }
-.btn--ghost:hover { background: var(--brand-dark); }
+.btn--ghost:hover { background: var(--charcoal-2); }
 
 /* 6. Forms --------------------------------------------------------------- */
 .form { max-width: 40rem; }
@@ -138,10 +159,10 @@ a:hover { color: var(--brand-dark); }
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 .table th, .table td { text-align: left; padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-.table th { background: var(--brand-tint); font-weight: 600; white-space: nowrap; }
+.table th { background: #f0f0f0; font-weight: 600; white-space: nowrap; }
 .table tbody tr:last-child td { border-bottom: 0; }
 .table tbody tr:hover { background: #fafbfc; }
-.ticket-ref { font-family: Consolas, "Courier New", monospace; font-weight: 600; white-space: nowrap; }
+.ticket-ref { color: var(--orange-text); font-family: Consolas, "Courier New", monospace; font-weight: 600; white-space: nowrap; }
 
 /* 8. Badges: text always carries the meaning, colour only supports it ---- */
 .badge {
@@ -199,4 +220,114 @@ a:hover { color: var(--brand-dark); }
   .main-nav { flex-basis: 100%; order: 3; }
   .main-nav a { padding: var(--space-2); }
   .user-menu { margin-left: auto; }
+}
+
+/* 11. Sign-in page (templates/accounts/login.html) ----------------------
+   Two panels: light brand panel on the left, dark form panel on the right.
+   Stacks on phones. Colours from Sifiso's mock-up. */
+.auth-page {
+  --auth-orange: var(--orange);       /* rings, button: never small text on light grey */
+  --auth-orange-text: var(--orange-text);  /* orange for small text on light grey (5:1+) */
+  --auth-light: #eeeeee;
+  --auth-dark: var(--charcoal);
+  --auth-input: var(--charcoal-2);
+  --auth-muted-light: #5c5c5c;
+  --auth-muted-dark: #c2c2c2;
+  background: var(--auth-dark);
+}
+.auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+
+.auth__brand {
+  position: relative; overflow: hidden;
+  background: var(--auth-light); color: #111;
+  display: flex; flex-direction: column;
+  padding: clamp(1.5rem, 4vw, 4.5rem);
+}
+/* The two orange rings, purely decorative */
+.auth__brand::before,
+.auth__brand::after {
+  content: ""; position: absolute; border-radius: 50%;
+  border: clamp(1rem, 1.8vw, 1.75rem) solid var(--auth-orange); pointer-events: none;
+}
+.auth__brand::before { width: 16rem; height: 16rem; right: -8rem; bottom: 9rem; }
+.auth__brand::after  { width: 22rem; height: 22rem; right: -11rem; bottom: -14rem; }
+
+.auth__logo { display: flex; align-items: center; gap: 1.25rem; }
+.auth__logo img { height: clamp(3.25rem, 6vw, 5.5rem); width: auto; }
+.auth__logo-text { font-size: clamp(2rem, 3.6vw, 3.5rem); font-weight: 500; letter-spacing: 0.01em; }
+
+.auth__pitch { margin-top: clamp(2.5rem, 9vh, 7rem); position: relative; z-index: 1; max-width: 32rem; }
+.auth__headline { font-size: clamp(2.25rem, 4vw, 3.75rem); line-height: 1.5; font-weight: 500; margin: 0 0 1rem; }
+.auth__tagline { font-size: 1.15rem; color: var(--auth-muted-light); margin: 0; }
+
+.auth__note {
+  margin: auto 0 0; padding-top: 2rem; position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--auth-orange-text); font-size: 0.95rem;
+}
+
+.auth__panel {
+  background: var(--auth-dark); color: #fff;
+  display: flex; align-items: center;
+  padding: clamp(1.5rem, 5vw, 8rem);
+}
+.auth__panel:focus { outline: none; }
+.auth__form-wrap { width: 100%; max-width: 36rem; }
+.auth__title { font-size: clamp(2.5rem, 3.5vw, 3.5rem); font-weight: 500; margin: 0 0 0.5rem; }
+.auth__intro { color: var(--auth-muted-dark); font-size: 1.15rem; margin: 0 0 2rem; }
+.auth__title + .alert { margin-top: 1rem; }
+.auth__form { display: grid; gap: 1.75rem; }
+
+.auth-field label { display: block; font-size: 1.15rem; margin-bottom: 0.6rem; }
+.auth-field__box { position: relative; }
+.auth-field__box input {
+  width: 100%; font: inherit; font-size: 1.05rem; color: #fff;
+  background: var(--auth-input); border: 2px solid transparent; border-radius: 8px;
+  padding: 1.05rem 3.5rem 1.05rem 3.6rem;
+}
+.auth-field__box input:focus { outline: none; border-color: var(--auth-orange); }
+.auth-field__box input[aria-invalid="true"] { border-color: #ff8a80; }
+.auth-field__icon {
+  position: absolute; left: 1.1rem; top: 50%; transform: translateY(-50%);
+  width: 1.6rem; height: 1.6rem; color: #d6d6d6; pointer-events: none;
+}
+.auth-field__toggle {
+  position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
+  background: none; border: 0; border-radius: 6px; padding: 0.4rem; color: #d6d6d6; cursor: pointer;
+}
+.auth-field__toggle[hidden] { display: none; }
+.auth-field__toggle svg { width: 1.6rem; height: 1.6rem; display: block; }
+.auth-field__toggle:hover, .auth-field__toggle[aria-pressed="true"] { color: var(--auth-orange); }
+
+.auth__submit {
+  justify-content: center; width: 100%; margin-top: 0.5rem;
+  font-size: 1.15rem; padding: 1rem; border-radius: 8px;
+  background: var(--auth-orange); color: #1a1a1a;
+}
+.auth__submit:hover { background: var(--orange-hover); color: #1a1a1a; }
+.auth__help { margin: 1.75rem 0 0; color: var(--auth-muted-dark); }
+.auth-field__error { color: #ffb4ab; margin: 0.5rem 0 0; padding: 0; list-style: none; font-size: 0.95rem; }
+.auth-field__rules { color: var(--auth-muted-dark); font-size: 0.9rem; margin-top: 0.6rem; }
+.auth-field__rules ul { margin: 0; padding-left: 1.2rem; }
+.auth-field__rules li { margin-bottom: 0.15rem; }
+.auth__links { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1.75rem; flex-wrap: wrap; }
+.auth__links form { margin: 0 0 0 auto; }
+.auth__links a, .auth__link-button { color: #ffb066; }
+.auth__link-button { background: none; border: 0; padding: 0; font: inherit; text-decoration: underline; cursor: pointer; }
+.auth__links a:hover, .auth__link-button:hover { color: #ffd2a8; }
+
+/* Alerts on the dark panel */
+.auth__panel .alert { margin-bottom: 1.5rem; }
+.auth__panel .alert--error { color: #ffd6d2; background: #4a2522; }
+.auth__panel .alert--success { color: #c9f0d6; background: #1f3d2b; }
+.auth__panel .alert--info, .auth__panel .alert--warning { color: #ffe0b8; background: #4a3519; }
+
+@media (max-width: 56rem) {
+  .auth { grid-template-columns: 1fr; }
+  .auth__brand { min-height: auto; }
+  .auth__brand::before, .auth__brand::after { display: none; }
+  .auth__pitch { margin-top: 1.5rem; }
+  .auth__headline { line-height: 1.2; }
+  .auth__note { padding-top: 1.5rem; }
+  .auth__panel { align-items: flex-start; }
 }

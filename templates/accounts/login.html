@@ -1,25 +1,72 @@
 {% extends "base.html" %}
-{% block title %}Log in{% endblock %}
+{% load static %}
+{% comment %}
+  Sign-in page (owner: Sifiso). View: accounts.views.login_view (Jack).
 
-{% block content %}
-<section class="auth-card">
-  <h1>Log in</h1>
+  Context from Jack's view:
+    form   accounts.forms.LoginForm, fields "email" and "password"
+    error  None, "Invalid email or password." or "This account is locked. Please contact IT."
+    next   where to go after signing in ("" if nothing)
 
-  {% if error %}
-    <p class="alert alert--error" role="alert">{{ error }}</p>
-  {% endif %}
+  - No "Sign up": accounts are created by an admin in the admin panel (project doc).
+  - The show-password button only appears when JavaScript runs.
+{% endcomment %}
 
-  <form method="post" novalidate>
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ next }}">
-    {% for field in form %}
-      <div class="field">
-        {{ field.label_tag }}
-        {{ field }}
-        {{ field.errors }}
-      </div>
-    {% endfor %}
-    <button type="submit" class="btn btn--primary">Log in</button>
-  </form>
-</section>
+{% block title %}Sign in{% endblock %}
+{% block body_class %} class="auth-page"{% endblock %}
+
+{% block body %}
+<div class="auth">
+  {% include "partials/_auth_brand.html" %}
+
+  <main id="main" class="auth__panel" tabindex="-1">
+    <div class="auth__form-wrap">
+      <h1 class="auth__title">Sign in</h1>
+      <p class="auth__intro">Enter your work email and password to open the service desk.</p>
+
+      {% include "partials/_messages.html" %}
+
+      {% if error %}
+        <div class="alert alert--error" role="alert" id="login-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" class="auth__form" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="auth-field">
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          <div class="auth-field__box">
+            <svg class="auth-field__icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            <input type="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}"
+                   value="{{ form.email.value|default:'' }}" maxlength="254" autocomplete="username"
+                   inputmode="email" required autofocus
+                   {% if form.email.errors %}aria-invalid="true" aria-describedby="email-error"{% elif error %}aria-invalid="true" aria-describedby="login-error"{% endif %}>
+          </div>
+          {% if form.email.errors %}<p class="auth-field__error" id="email-error">{{ form.email.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="auth-field">
+          <label for="{{ form.password.id_for_label }}">Password</label>
+          <div class="auth-field__box">
+            <svg class="auth-field__icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}"
+                   autocomplete="current-password" required
+                   {% if form.password.errors %}aria-invalid="true" aria-describedby="password-error"{% elif error %}aria-invalid="true" aria-describedby="login-error"{% endif %}>
+            {% include "partials/_password_toggle.html" with target=form.password.id_for_label %}
+          </div>
+          {% if form.password.errors %}<p class="auth-field__error" id="password-error">{{ form.password.errors.0 }}</p>{% endif %}
+        </div>
+
+        <button type="submit" class="btn auth__submit">Sign in</button>
+      </form>
+
+      <p class="auth__help">No account yet, or locked out? Contact the IT team and they'll set you up.</p>
+    </div>
+  </main>
+</div>
+{% endblock body %}
+
+{% block scripts %}
+  <script src="{% static 'js/password-toggle.js' %}" defer></script>
 {% endblock %}
