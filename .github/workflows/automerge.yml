@@ -1,17 +1,21 @@
 name: Auto-merge
 
-# Squash-merges a pull request into main as soon as CI is green.
-# Skipped (left for a human) when the PR:
+# Squash-merges a pull request into main as soon as Checks is green.
+# Waits (leaves it for a human) when the PR:
 #   - is a draft
 #   - has the label "hold"
-#   - touches models.py or a migration (Dan reviews those)
+#   - has a reviewer requested who hasn't approved yet, or a review asking for changes
+#   - touches models.py or a migration and Dan (danielAd0) hasn't approved it
+#     (Dan's own PRs skip this, since GitHub won't let him approve his own)
 
 on:
   workflow_run:
     workflows: ["Checks"]
     types: [completed]
   pull_request:
-    types: [opened, reopened, ready_for_review, labeled, unlabeled]
+    types: [opened, reopened, ready_for_review, labeled, unlabeled, review_requested, review_request_removed]
+  pull_request_review:
+    types: [submitted, dismissed]
 
 permissions:
   contents: write
@@ -26,14 +30,15 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     if: >-
-      github.event_name == 'pull_request' ||
+      github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'
     steps:
-      - name: Merge if green
+      - name: Merge if green and approved
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch }}
+          DB_OWNER: danielAd0
         run: |
           set -euo pipefail
 
@@ -47,7 +52,7 @@ jobs:
             echo "No open PR for $BRANCH yet."; exit 0
           fi
 
-          INFO=$(gh pr view "$PR" --repo "$REPO" --json isDraft,labels,headRefOid)
+          INFO=$(gh pr view "$PR" --repo "$REPO" --json isDraft,labels,headRefOid,reviewRequests,latestReviews,author)
           if [ "$(echo "$INFO" | jq -r .isDraft)" = "true" ]; then
             echo "PR #$PR is a draft, skipping."; exit 0
           fi
@@ -55,20 +60,34 @@ jobs:
             echo "PR #$PR has the hold label, skipping."; exit 0
           fi
 
+          # A requested reviewer who hasn't reviewed yet still sits in reviewRequests
+          WAITING=$(echo "$INFO" | jq -r '[.reviewRequests[] | (.login // .name // .slug)] | join(", ")')
+          if [ -n "$WAITING" ]; then
+            echo "PR #$PR is waiting for a review from: $WAITING"; exit 0
+          fi
+          if echo "$INFO" | jq -e '.latestReviews[] | select(.state == "CHANGES_REQUESTED")' > /dev/null; then
+            echo "PR #$PR has a review asking for changes, skipping."; exit 0
+          fi
+
           SHA=$(echo "$INFO" | jq -r .headRefOid)
           CI=$(gh run list --repo "$REPO" --workflow ci.yml --commit "$SHA" --limit 1 \
                  --json status,conclusion --jq '.[0] | "\(.status)/\(.conclusion)"')
           if [ "$CI" != "completed/success" ]; then
-            echo "CI for $SHA is '$CI', not green yet. Will try again when CI finishes."; exit 0
+            echo "Checks for $SHA are '$CI', not green yet. Will try again when they finish."; exit 0
           fi
 
-          if gh pr diff "$PR" --repo "$REPO" --name-only | grep -Eq '(^|/)models\.py$|/migrations/'; then
-            echo "PR #$PR touches models or migrations, leaving it for Dan."
-            if ! gh pr view "$PR" --repo "$REPO" --json comments --jq '.comments[].body' | grep -q 'needs Dan'; then
-              gh pr comment "$PR" --repo "$REPO" \
-                --body "Auto-merge skipped: this PR changes models or migrations, so it needs Dan's review first."
+          AUTHOR=$(echo "$INFO" | jq -r '.author.login | ascii_downcase')
+          OWNER_LC=$(echo "$DB_OWNER" | tr '[:upper:]' '[:lower:]')
+          if [ "$AUTHOR" != "$OWNER_LC" ] && gh pr diff "$PR" --repo "$REPO" --name-only | grep -Eq '(^|/)models\.py$|/migrations/'; then
+            if ! echo "$INFO" | jq -e --arg o "$DB_OWNER" \
+                 '.latestReviews[] | select((.author.login | ascii_downcase) == ($o | ascii_downcase) and .state == "APPROVED")' > /dev/null; then
+              echo "PR #$PR touches models or migrations, waiting for $DB_OWNER to approve."
+              if ! gh pr view "$PR" --repo "$REPO" --json comments --jq '.comments[].body' | grep -q 'needs Dan'; then
+                gh pr comment "$PR" --repo "$REPO" \
+                  --body "Auto-merge is waiting: this PR changes models or migrations, so it needs Dan's approval first. It merges by itself once he approves."
+              fi
+              exit 0
             fi
-            exit 0
           fi
 
           gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
