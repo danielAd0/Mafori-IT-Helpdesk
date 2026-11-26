@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}My tickets{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>My tickets</h1>
+  <a class="btn btn--primary" href="{% url 'tickets:ticket_create' %}">Log a ticket</a>
+</div>
+
+{% if tickets %}
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Subject</th>
+        <th>Category</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Logged</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td><a class="ticket-ref" href="{% url 'tickets:ticket_detail' ticket.pk %}">{{ ticket.reference }}</a></td>
+        <td>{{ ticket.subject }}</td>
+        <td>{{ ticket.category.name }}</td>
+        <td><span class="badge badge--priority-{{ ticket.priority|lower }}">{{ ticket.get_priority_display }}</span></td>
+        <td><span class="badge badge--status-{{ ticket.status|lower }}">{{ ticket.get_status_display }}</span></td>
+        <td>{{ ticket.created_at|date:"j M Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <p>You haven't logged any tickets yet.</p>
+</div>
+{% endif %}
+{% endblock %}

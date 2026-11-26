@@ -11,6 +11,7 @@ admin.site.index_title = "Manage users, departments and categories"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
+    path("tickets/", include("tickets.urls")),
     # TEMPORARY landing page after login, until the dashboard (Milestone 6)
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
 ]

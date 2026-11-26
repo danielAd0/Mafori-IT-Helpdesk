@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.reference }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1><span class="ticket-ref">{{ ticket.reference }}</span> {{ ticket.subject }}</h1>
+  <a class="btn btn--secondary" href="{% url 'tickets:my_tickets' %}">Back to my tickets</a>
+</div>
+
+<div class="card">
+  <p>
+    <span class="badge badge--status-{{ ticket.status|lower }}">{{ ticket.get_status_display }}</span>
+    <span class="badge badge--priority-{{ ticket.priority|lower }}">{{ ticket.get_priority_display }}</span>
+  </p>
+  <dl>
+    <dt>Category</dt>
+    <dd>{{ ticket.category.name }}</dd>
+    <dt>Logged by</dt>
+    <dd>{{ ticket.requester.first_name }} {{ ticket.requester.last_name }}</dd>
+    <dt>Assigned to</dt>
+    <dd>{% if ticket.assigned_to %}{{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}{% else %}Not assigned yet{% endif %}</dd>
+    <dt>Logged on</dt>
+    <dd>{{ ticket.created_at|date:"j M Y H:i" }}</dd>
+    {% if ticket.asset_tag %}<dt>Asset tag</dt><dd>{{ ticket.asset_tag }}</dd>{% endif %}
+    {% if ticket.location %}<dt>Location</dt><dd>{{ ticket.location }}</dd>{% endif %}
+  </dl>
+
+  <h2>Description</h2>
+  {{ ticket.description|linebreaks }}
+
+  {% if ticket.resolution_note %}
+    <h2>Resolution</h2>
+    {{ ticket.resolution_note|linebreaks }}
+  {% endif %}
+</div>
+
+<h2>Comments</h2>
+{% for comment in comments %}
+  <div class="comment{% if comment.is_internal %} comment--internal{% endif %}">
+    <p class="comment__meta">
+      {{ comment.author.first_name }} {{ comment.author.last_name }}
+      · {{ comment.created_at|date:"j M Y H:i" }}
+      {% if comment.is_internal %}· Internal note (IT only){% endif %}
+    </p>
+    {{ comment.body|linebreaks }}
+  </div>
+{% empty %}
+  <p class="text-muted">No comments yet.</p>
+{% endfor %}
+
+<h2>History</h2>
+{% if history %}
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Changed by</th>
+        <th>What</th>
+        <th>From</th>
+        <th>To</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for change in history %}
+      <tr>
+        <td>{{ change.changed_at|date:"j M Y H:i" }}</td>
+        <td>{{ change.changed_by.first_name }} {{ change.changed_by.last_name }}</td>
+        <td>{{ change.get_field_display }}</td>
+        <td>{{ change.old_value|default:"-" }}</td>
+        <td>{{ change.new_value|default:"-" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="text-muted">Nothing has changed yet.</p>
+{% endif %}
+{% endblock %}
