@@ -14,7 +14,7 @@ from tickets.models import Category, Location, Ticket
 class LocationModelTests(TestCase):
     def test_migration_adds_a_starter_list(self):
         names = list(Location.objects.values_list("name", flat=True))
-        self.assertEqual(names[0], "Head office - Ground floor")
+        self.assertEqual(names[0], "Bloemfontein")
         self.assertIn("Remote (working from home)", names)
 
     def test_dropdown_order_is_sort_order_then_name(self):
