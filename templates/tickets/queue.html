@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% comment %}
+  IT queue (owner: Sifiso for the look, Jack for the view). View: tickets.views.queue. IT staff only.
+  Context:
+    tickets         active tickets, most urgent first (category, requester, agent pre-loaded)
+    status_tabs     one entry per status: value, label, count (counts cover every visible ticket)
+    status          the selected status, "" = all except closed
+    priority        the selected priority, "" = any
+    show            "mine", "unassigned" or "" = everyone's
+    priority_choices  (value, label) pairs for the priority menu
+  New classes used that still need styling: status-tabs, filters.
+{% endcomment %}
+{% block title %}IT queue{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>IT queue</h1>
+    <p class="page-header__sub">{{ tickets|length }} ticket{{ tickets|length|pluralize }}{% if not status %} (closed tickets hidden){% endif %}</p>
+  </div>
+</div>
+
+<nav class="status-tabs" aria-label="Filter by status">
+  <ul>
+    <li><a href="{% url 'tickets:queue' %}"{% if not status %} aria-current="page"{% endif %}>Active</a></li>
+    {% for tab in status_tabs %}
+    <li><a href="?status={{ tab.value }}"{% if status == tab.value %} aria-current="page"{% endif %}>{{ tab.label }} <span class="count">{{ tab.count }}</span></a></li>
+    {% endfor %}
+  </ul>
+</nav>
+
+<form method="get" class="filters" aria-label="Filter the queue">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <div class="field">
+    <label for="filter-priority">Priority</label>
+    <select name="priority" id="filter-priority">
+      <option value="">Any priority</option>
+      {% for value, label in priority_choices %}
+      <option value="{{ value }}"{% if priority == value %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="filter-show">Show</label>
+    <select name="show" id="filter-show">
+      <option value=""{% if not show %} selected{% endif %}>Everyone's tickets</option>
+      <option value="mine"{% if show == "mine" %} selected{% endif %}>Assigned to me</option>
+      <option value="unassigned"{% if show == "unassigned" %} selected{% endif %}>Not assigned yet</option>
+    </select>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn--primary">Filter</button>
+    <a class="btn btn--secondary" href="{% url 'tickets:queue' %}">Clear</a>
+  </div>
+</form>
+
+{% if tickets %}
+<div class="table-wrap">
+  <table class="table table--stack">
+    <caption class="visually-hidden">Tickets in the IT queue, most urgent first</caption>
+    <thead>
+      <tr>
+        <th scope="col">Ticket</th>
+        <th scope="col">Subject</th>
+        <th scope="col">Requester</th>
+        <th scope="col">Category</th>
+        <th scope="col">Priority</th>
+        <th scope="col">Status</th>
+        <th scope="col">Assigned to</th>
+        <th scope="col">Logged</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td data-label="Ticket"><a class="ticket-ref" href="{% url 'tickets:ticket_detail' ticket.pk %}">{{ ticket.reference }}</a></td>
+        <td data-label="Subject" class="table__subject">{{ ticket.subject }}</td>
+        <td data-label="Requester">{{ ticket.requester.get_full_name|default:ticket.requester.email }}</td>
+        <td data-label="Category">{{ ticket.category.name }}</td>
+        <td data-label="Priority">{% include "partials/_badges.html" with kind="priority" value=ticket.priority label=ticket.get_priority_display %}</td>
+        <td data-label="Status">{% include "partials/_badges.html" with kind="status" value=ticket.status label=ticket.get_status_display %}</td>
+        <td data-label="Assigned to">{% if ticket.assigned_to %}{{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.email }}{% else %}<span class="text-muted">Not assigned yet</span>{% endif %}</td>
+        <td data-label="Logged"><time datetime="{{ ticket.created_at|date:'c' }}">{{ ticket.created_at|date:"j M Y" }}</time></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty-state">
+  <h2>No tickets match these filters.</h2>
+  <p class="text-muted">Try a different status or priority.</p>
+  <a class="btn btn--secondary" href="{% url 'tickets:queue' %}">Clear filters</a>
+</div>
+{% endif %}
+{% endblock %}
