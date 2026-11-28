@@ -1,0 +1,22 @@
+{% load i18n %}
+{# One row in an admin home-page card. Expects "model" from Django's app_list. #}
+<li>
+  <div class="mf-model">
+    {% if model.admin_url %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% else %}<strong>{{ model.name }}</strong>{% endif %}
+    <p>
+      {% if model.object_name == "User" %}Staff accounts and roles. Unlock people and set temporary passwords here.
+      {% elif model.object_name == "Department" %}The departments people belong to.
+      {% elif model.object_name == "Category" %}What a ticket is about. Untick "active" to retire one.
+      {% elif model.object_name == "Location" %}Offices and floors in the ticket form, in the order shown.
+      {% elif model.object_name == "Ticket" %}All tickets, for look-ups and corrections.
+      {% elif model.object_name == "TicketHistory" %}A read-only record of every change.
+      {% endif %}
+    </p>
+  </div>
+  <div class="mf-actions">
+    {% if model.add_url %}<a class="mf-add" href="{{ model.add_url }}">{% translate "Add" %}</a>{% endif %}
+    {% if model.admin_url %}
+      {% if model.view_only %}<a href="{{ model.admin_url }}">{% translate "View" %}</a>{% else %}<a href="{{ model.admin_url }}">{% translate "Change" %}</a>{% endif %}
+    {% endif %}
+  </div>
+</li>

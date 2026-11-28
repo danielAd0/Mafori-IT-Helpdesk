@@ -55,6 +55,30 @@ class BaseLayoutTests(SimpleTestCase):
     def test_browser_tab_icon_is_linked(self):
         self.assertIn("img/favicon-32.png", self.render_for(AnonymousUser()))
 
+    def test_signed_in_pages_use_the_sidebar(self):
+        html = self.render_for(self.make_user(User.Role.EMPLOYEE))
+        self.assertIn('class="sidebar"', html)
+        self.assertIn('aria-controls="sidebar-menu"', html)
+        self.assertIn("js/sidebar.js", html)
+        self.assertIn('img/mafori-logo.png" alt="Mafori"', html)
+
+    def test_sidebar_links_for_an_employee(self):
+        html = self.render_for(self.make_user(User.Role.EMPLOYEE))
+        self.assertIn("Dashboard</a>", html)
+        self.assertIn("My tickets</a>", html)
+        self.assertIn("Log a ticket</a>", html)
+        self.assertNotIn("Admin panel", html)
+
+    def test_sign_out_is_a_post_button_in_the_user_menu(self):
+        html = self.render_for(self.make_user(User.Role.EMPLOYEE))
+        self.assertIn('<details class="user-box">', html)
+        self.assertIn('action="/accounts/logout/"', html)
+        self.assertIn("csrfmiddlewaretoken", html)
+        self.assertIn('href="/accounts/password/change/"', html)
+
+    def test_signed_out_pages_have_no_sidebar(self):
+        self.assertNotIn('class="sidebar"', self.render_for(AnonymousUser()))
+
 
 class LoginPageTests(SimpleTestCase):
     """templates/accounts/login.html with Jack's LoginForm (no database needed)."""
