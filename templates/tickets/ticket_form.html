@@ -8,6 +8,12 @@
 {% endcomment %}
 {% block title %}Log a ticket{% endblock %}
 
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol><li>Tickets</li><li><a href="{% url 'tickets:my_tickets' %}">My tickets</a></li><li aria-current="page">Log a ticket</li></ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
   <div>

@@ -13,28 +13,41 @@
   {% block body %}
   <a class="skip-link" href="#main">Skip to main content</a>
 
+  {% comment %}
+    Signed in: sidebar on the left, page on the right (owner: Sifiso).
+    Signed out (e.g. a 404 before signing in): a plain brand bar on top.
+    Only the frame differs; every page's content goes in the one {% block content %}.
+  {% endcomment %}
+  {% if user.is_authenticated %}
+  <div class="shell">
+    {% include "partials/_nav.html" %}
+    <div class="shell__main">
+      <div class="topbar">{% block breadcrumbs %}{% endblock %}</div>
+  {% else %}
   <header class="site-header">
     <div class="site-header__inner">
       <a class="brand" href="/">
         <img src="{% static 'img/mafori-logo.png' %}" alt="Mafori" width="44" height="36">
         <span>IT Helpdesk</span>
       </a>
-      {% if user.is_authenticated %}
-        {% include "partials/_nav.html" %}
-      {% endif %}
     </div>
   </header>
+  {% endif %}
 
-  <main id="main" class="site-main" tabindex="-1">
-    {% include "partials/_messages.html" %}
-    {% block content %}{% endblock %}
-  </main>
+      <main id="main" class="site-main" tabindex="-1">
+        {% include "partials/_messages.html" %}
+        {% block content %}{% endblock %}
+      </main>
 
-  <footer class="site-footer">
-    <div class="site-footer__inner">
-      Mafori Group · IT Helpdesk
+      <footer class="site-footer">
+        <div class="site-footer__inner">Mafori Group · IT Helpdesk</div>
+      </footer>
+
+  {% if user.is_authenticated %}
     </div>
-  </footer>
+  </div>
+  <script src="{% static 'js/sidebar.js' %}" defer></script>
+  {% endif %}
   {% endblock body %}
   {% block scripts %}{% endblock %}
 </body>

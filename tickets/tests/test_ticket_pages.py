@@ -164,3 +164,20 @@ class TicketDetailPageTests(TicketPagesTestCase):
         response = self.detail()
         self.assertContains(response, "How IT resolved it")
         self.assertContains(response, "Updated the VPN client.")
+
+
+class OverviewAndBreadcrumbTests(TicketPagesTestCase):
+    def test_overview_greets_the_user(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, "Welcome Lerato")
+        self.assertContains(response, "<h1>Overview</h1>")
+        self.assertNotContains(response, "Admin panel")  # Lerato is an employee
+
+    def test_dashboard_link_is_marked_current_on_the_overview(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, 'aria-current="page">', count=2)  # sidebar link + breadcrumb
+
+    def test_ticket_pages_show_where_you_are(self):
+        response = self.detail()
+        self.assertContains(response, 'aria-label="Breadcrumb"')
+        self.assertContains(response, f'<li aria-current="page">{self.ticket.reference}</li>')

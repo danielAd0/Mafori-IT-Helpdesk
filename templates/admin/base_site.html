@@ -1,31 +1,71 @@
 {% extends "admin/base_site.html" %}
-{% load static %}
+{% load i18n static %}
 {% comment %}
-  Mafori orange and charcoal on Django's admin panel (owner: Sifiso).
-  Extends Django's own admin/base_site.html and only swaps colour variables,
-  so admin upgrades keep working. Keep in step with the tokens in static/css/mafori.css.
+  Mafori look for Django's admin panel (owner: Sifiso).
+
+  Extends Django's own admin/base_site.html and only replaces small blocks
+  (branding, user links, colours), so Django upgrades keep working.
+  Keep colours in step with the tokens in static/css/mafori.css.
   White text never sits on bright orange (too faint); dark orange #a84a00 is used instead.
+
+  - Header: Mafori logo + "IT Helpdesk" + an "Admin" tag.
+  - "View site" becomes "Back to the helpdesk".
+  - "Change password" and "Log out" use the app's own pages (Jack's views), so
+    there is one password page with the app's rules, and logging out lands on
+    the app's sign-in page.
 {% endcomment %}
+
 {% block extrahead %}{{ block.super }}
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
 {% endblock %}
+
+{% block branding %}
+<div id="site-name">
+  <a href="{% url 'admin:index' %}" class="mf-brand">
+    <img src="{% static 'img/mafori-logo.png' %}" alt="Mafori" width="39" height="32">
+    <span>IT Helpdesk</span>
+    <span class="mf-brand__tag">Admin</span>
+  </a>
+</div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block userlinks %}
+  {# "home" is the temporary landing page; fall back to the site root if it gets renamed #}
+  {% url 'home' as home_url %}
+  <a href="{% firstof home_url site_url %}" class="mf-back">&larr; Back to the helpdesk</a> /
+  {% if user.has_usable_password %}
+    <a href="{% url 'accounts:change_password' %}">{% translate 'Change password' %}</a> /
+  {% endif %}
+  <form id="logout-form" method="post" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit">{% translate 'Log out' %}</button>
+  </form>
+  {% include "admin/color_theme_toggle.html" %}
+{% endblock %}
+
 {% block extrastyle %}{{ block.super }}
 <style>
   :root,
   html[data-theme="light"],
   html[data-theme="dark"] {
+    --font-family-primary: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
     --secondary: #2d2d2d;            /* top bar */
     --header-bg: #2d2d2d;
     --primary: #444444;              /* section headers, breadcrumbs, buttons */
     --breadcrumbs-bg: #444444;
-    --accent: #ff7a00;               /* "Mafori IT Helpdesk admin" title */
+    --accent: #ff7a00;
     --header-color: #ffffff;
     --header-link-color: #ffffff;
-    --header-branding-color: #ff7a00;
+    --header-branding-color: #ffffff;
     --button-bg: #444444;
     --button-hover-bg: #2d2d2d;
     --default-button-bg: #a84a00;    /* Save */
     --default-button-hover-bg: #7d3700;
+    --mf-orange: #ff7a00;
+    --mf-tint: #fff4ea;
   }
   :root,
   html[data-theme="light"] {
@@ -38,6 +78,7 @@
     --link-fg: #ff9a3c;
     --link-hover-color: #ffb066;
     --link-selected-fg: #ffb066;
+    --mf-tint: #3d3328;
   }
   @media (prefers-color-scheme: dark) {
     html:not([data-theme="light"]) {
@@ -45,7 +86,61 @@
       --link-hover-color: #ffb066;
       --link-selected-fg: #ffb066;
       --selected-row: #3d3328;
+      --mf-tint: #3d3328;
     }
+  }
+
+  /* Header */
+  #header { padding-top: 12px; padding-bottom: 12px; }
+  #site-name .mf-brand {
+    display: inline-flex; align-items: center; gap: 12px;
+    color: #fff; text-decoration: none; font-size: 1.35rem; font-weight: 600;
+  }
+  #site-name .mf-brand img { height: 32px; width: auto; }
+  .mf-brand__tag {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #1a1a1a; background: var(--mf-orange); padding: 2px 8px; border-radius: 999px;
+  }
+  #user-tools a.mf-back { border-bottom: 0; color: var(--mf-orange); font-weight: 600; }
+  #user-tools a.mf-back:hover { color: #ffb066; }
+
+  /* Home page cards (templates/admin/index.html) */
+  .mf-intro { margin: 0 0 24px; color: var(--body-quiet-color); font-size: 1rem; max-width: 46rem; }
+  .mf-cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); }
+  .mf-card {
+    background: var(--body-bg); border: 1px solid var(--hairline-color);
+    border-top: 4px solid var(--mf-orange); border-radius: 8px; padding: 18px 20px 8px;
+  }
+  .mf-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .mf-card__icon {
+    flex: none; width: 38px; height: 38px; border-radius: 50%;
+    display: grid; place-items: center; background: var(--mf-tint); color: var(--link-fg);
+  }
+  .mf-card__icon svg { width: 20px; height: 20px; }
+  .mf-card h2 { margin: 0; padding: 0; background: none; color: var(--body-fg); font-size: 1.1rem; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .mf-card__desc { margin: 2px 0 10px 50px; color: var(--body-quiet-color); font-size: 0.85rem; }
+  .mf-card ul { list-style: none; margin: 0; padding: 0; }
+  .mf-card li {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 0; border-top: 1px solid var(--hairline-color); margin: 0;
+  }
+  .mf-model { flex: 1 1 12rem; min-width: 0; }
+  .mf-model a { font-weight: 600; font-size: 0.95rem; }
+  .mf-model p { margin: 2px 0 0; padding: 0; color: var(--body-quiet-color); font-size: 0.8rem; line-height: 1.4; }
+  .mf-actions { display: flex; gap: 6px; }
+  .mf-actions a {
+    display: inline-block; padding: 5px 11px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+    border: 1px solid var(--hairline-color); color: var(--body-fg); text-decoration: none; white-space: nowrap;
+  }
+  .mf-actions a:hover { border-color: var(--link-fg); color: var(--link-fg); }
+  .mf-actions a.mf-add { background: #a84a00; border-color: #a84a00; color: #fff; }
+  .mf-actions a.mf-add:hover { background: #7d3700; border-color: #7d3700; color: #fff; }
+  .mf-card--other:not(:has(li)) { display: none; }
+  /* Django's dashboard caps the home page at 600px; let the cards use the room */
+  .dashboard #content { width: auto; max-width: 1240px; }
+  @media (max-width: 767px) {
+    .mf-card__desc { margin-left: 0; }
+    .mf-actions { width: 100%; }
   }
 </style>
 {% endblock %}

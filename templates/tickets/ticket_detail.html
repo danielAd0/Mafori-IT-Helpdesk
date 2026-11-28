@@ -11,9 +11,13 @@
 {% endcomment %}
 {% block title %}{{ ticket.reference }}: {{ ticket.subject }}{% endblock %}
 
-{% block content %}
-<p class="back-link"><a href="{% url 'tickets:my_tickets' %}">&larr; My tickets</a></p>
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol><li>Tickets</li><li><a href="{% url 'tickets:my_tickets' %}">My tickets</a></li><li aria-current="page">{{ ticket.reference }}</li></ol>
+</nav>
+{% endblock %}
 
+{% block content %}
 <div class="ticket-head">
   <p class="ticket-ref ticket-head__ref">{{ ticket.reference }}</p>
   <h1 class="ticket-head__title">{{ ticket.subject }}</h1>

@@ -1,0 +1,89 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+{% comment %}
+  Admin home page (owner: Sifiso). Extends Django's own admin/index.html and only
+  replaces the title and the main column; the "Recent actions" sidebar is Django's.
+
+  Models are grouped into cards by object_name. Links and buttons come from
+  Django's app_list, so an admin only sees what they have permission for.
+  Any model not listed below lands in "Other" automatically, so nothing new is
+  ever hidden. Django's "Groups" is left off: the app uses roles instead
+  (Dan can remove it from the admin completely in accounts/admin.py).
+{% endcomment %}
+
+{% block content_title %}
+  <h1>Admin panel</h1>
+  <p class="mf-intro">Manage people, ticket settings and records. Day-to-day ticket work happens in the helpdesk app.</p>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  {% if app_list %}
+  <div class="mf-cards">
+
+    <section class="mf-card" aria-labelledby="mf-people">
+      <div class="mf-card__head">
+        <span class="mf-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 14.2c2.6.2 4.5 2.2 4.5 5.3" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+        <h2 id="mf-people">People</h2>
+      </div>
+      <p class="mf-card__desc">Who can sign in, their role and department.</p>
+      <ul>
+        {% for app in app_list %}{% for model in app.models %}
+          {% if model.object_name == "User" or model.object_name == "Department" %}
+            {% include "admin/partials/_mf_model_row.html" %}
+          {% endif %}
+        {% endfor %}{% endfor %}
+      </ul>
+    </section>
+
+    <section class="mf-card" aria-labelledby="mf-setup">
+      <div class="mf-card__head">
+        <span class="mf-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+        <h2 id="mf-setup">Ticket setup</h2>
+      </div>
+      <p class="mf-card__desc">The choices people see when they log a ticket.</p>
+      <ul>
+        {% for app in app_list %}{% for model in app.models %}
+          {% if model.object_name == "Category" or model.object_name == "Location" %}
+            {% include "admin/partials/_mf_model_row.html" %}
+          {% endif %}
+        {% endfor %}{% endfor %}
+      </ul>
+    </section>
+
+    <section class="mf-card" aria-labelledby="mf-records">
+      <div class="mf-card__head">
+        <span class="mf-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <h2 id="mf-records">Records</h2>
+      </div>
+      <p class="mf-card__desc">Every ticket and every change made to it.</p>
+      <ul>
+        {% for app in app_list %}{% for model in app.models %}
+          {% if model.object_name == "Ticket" or model.object_name == "TicketHistory" %}
+            {% include "admin/partials/_mf_model_row.html" %}
+          {% endif %}
+        {% endfor %}{% endfor %}
+      </ul>
+    </section>
+
+    {# Safety net: anything added later shows up here. The card hides itself when empty. #}
+    <section class="mf-card mf-card--other" aria-labelledby="mf-other">
+      <div class="mf-card__head">
+        <span class="mf-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="18" cy="12" r="1.8" fill="currentColor"/></svg></span>
+        <h2 id="mf-other">Other</h2>
+      </div>
+      <ul>
+        {% for app in app_list %}{% for model in app.models %}
+          {% if model.object_name != "User" and model.object_name != "Department" and model.object_name != "Category" and model.object_name != "Location" and model.object_name != "Ticket" and model.object_name != "TicketHistory" and model.object_name != "Group" %}
+            {% include "admin/partials/_mf_model_row.html" %}
+          {% endif %}
+        {% endfor %}{% endfor %}
+      </ul>
+    </section>
+
+  </div>
+  {% else %}
+    <p>{% translate "You don’t have permission to view or edit anything." %}</p>
+  {% endif %}
+</div>
+{% endblock %}
